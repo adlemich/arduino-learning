@@ -20,6 +20,8 @@
 #define LCD_POS_ZEIT_AKTU   2			// Position auf dem LCD Display für die Anzeige des aktuellen Zeitwerts	
 #define LCD_POS_ZEIT_BEST   10		// Position auf dem LCD Display für den Signal des besten Zeitwerts
 
+#define GRENZWERT_FAKTOR    0.95  // Die Lichtschranke wird als unterbrochen angenommen, wenn der Messwert unter diesen Faktor fällt. 
+
 //-------------------------------------
 
 #define AN                    HIGH    // Wert um einen digitalen Ausgang AN zu schalten
@@ -55,7 +57,8 @@ LiquidCrystal_I2C lcdDisplay(0x27, LCD_DISPLAY_ZEICHEN, LCD_DISPLAY_ZEILEN);  //
 
 // Werte für den Lichtsensor 
 int    wertLichtsensor 			= 0; 		// Messwert für den Lichtsensor
-int    wertNormalLicht 			= 0; 		// Hier speichern wir den Normalwert für das Raumlicht
+int    wertLaserLicht 			= 0; 		// Hier speichern wir den Normalwert für das Laserlicht (hohe Helligkeit)
+int    wertLichtGrenze      = 0;
 bool   schrankeAktiv     		= false; 	// Lichtschranke blockiert, aus
 bool   letzterAktivStand 		= false; 	// Hiermit merken wir uns den Zustand der Lichtschranke der zuvor anlag
 
@@ -71,15 +74,17 @@ String datenDisplay = "";
 /* SETUP() ---------------------------------------------------------------------------------
    Dies ist die Funktion die aufgerufen wird, wenn das Programm startet.
    Es started das LCD Display und misst den "normalen" Helligkeitswert des Lichtsensors.
-   Achtung, der Laser darf nicht auf den Sensor gerichtet sein, sonst klappt die Kalibrierung nicht.
+   Achtung, der Laser muss auf den Sensor gerichtet sein, sonst klappt die Kalibrierung nicht.
 ---------------------------------------------------------------------------------------------*/ 
 void setup() {
 
   // warten bis sich Dinge normalisiert haben. Das muss sein um den analogen Eingang auf normale Spannungswerte zu bringen
   WARTE(1000); 
   
-  // Analogen Eingang auslesen, speichern wir als "normalen Lichtwert"
-  wertNormalLicht = LESE_ANALOGEN_EINGANG(EINGANG_LICHTSENSOR);
+  // Analogen Eingang auslesen, speichern wir als "normalen Laserwert". 
+  // Der Grenzwert liegt bei 90% des gemessenen Werts
+  wertLaserLicht = LESE_ANALOGEN_EINGANG(EINGANG_LICHTSENSOR);
+  wertLichtGrenze = wertLaserLicht * GRENZWERT_FAKTOR;
 
   // Hier richten wir das LCD Display ein. 
   // Es zeigt kurz den "normalen" Lichtwert an, den wir gemessen haben.
@@ -89,7 +94,7 @@ void setup() {
   lcdDisplay.setCursor(0, 0);      		// Schreib-Cursor auf Position 1, Zeile 1 (0, 0)
   lcdDisplay.print("Normalwert:"); 		// Text schreiben
   lcdDisplay.setCursor(0, 1);      		// Cursor auf Position 1, Zeile 1 (0, 0)
-  lcdDisplay.print(wertNormalLicht); 	// Text schreiben
+  lcdDisplay.print(wertLaserLicht); 	// Text schreiben
 
   // Den Wert für 1 Sekunde anzeigen
   WARTE(1000);
@@ -119,27 +124,27 @@ void loop() {
   // Aktuelle Zeit auslesen
   aktuelleZeit = millis();
 
-  // Wenn der aktuelle Wert mehr als 20 % größer ist als der Normalwert, ist die Lichtschranke aktiv
-  // Das heisst, der Laser scheint noch auf den Sensor.
-  WENN (wertLichtsensor > wertNormalLicht * 1.2) {
+  // Wenn der aktuelle Wert mehr als 10 % kleiner ist als der eingemessene Laserwert, ist die Lichtschranke unterbrochen
+  // Das heisst, der Laser scheint nicht mehr auf den Sensor.
+  WENN (wertLichtsensor > wertLichtGrenze) {
      
-	 // OK, Laser auf dem Sensor, Schranke ist aktiv
-	 schrankeAktiv = true;
+	 // OK, Laser auf dem Sensor, Lichtschranke ist aktiv
+	 schrankeAktiv = JA;
 	 // Auf dem Display zeigen wir unter S(ignal) eine 1 an.
-     lcdDisplay.setCursor(LCD_POS_SIGNAL, 1);      	// Cursor auf Position 1, Zeile 1 (0, 0)
-     lcdDisplay.print(1); 							// senden Nachricht an LCD
+   lcdDisplay.setCursor(LCD_POS_SIGNAL, 1);      	// Cursor auf Position 1, Zeile 1 (0, 0)
+   lcdDisplay.print(1); 							// senden Nachricht an LCD
 	 
   } 
   SONST {
 	  
-	// OK, Laser scheint nicht mehr auf den Sensor, Schranke ist deaktiviert!
-    schrankeAktiv = false;
-	// Auf dem Display zeigen wir unter S(ignal) eine 0 an.
+	  // OK, Laser scheint nicht mehr auf den Sensor, Schranke ist deaktiviert!
+    schrankeAktiv = NEIN;
+	  // Auf dem Display zeigen wir unter S(ignal) eine 0 an.
     lcdDisplay.setCursor(LCD_POS_SIGNAL, 1);      	// Cursor auf Position 1, Zeile 1 (0, 0)
     lcdDisplay.print(0); 							// senden Nachricht an LCD
   }
 
-  // Prüfen ob wir eine positive Flanke haben (Lichtschranke wird durchbrochen)
+  // Prüfen ob wir eine positive Flanke haben (Bei der letzten Messung war die Schrank aktiv, und jetzt nicht mehr)
   WENN (letzterAktivStand IST JA && schrankeAktiv IST NEIN) {
 
 	// JETZT MÜSSEN WIR WAS TUN
