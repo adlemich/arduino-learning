@@ -1,0 +1,56 @@
+================================================
+OPTISCH (LASER) BASIERTE ZEITMESSUNG MIT ARDUINO
+================================================
+
+Diese Projekt dreht sich um den Aufbau eines einfachen Zeitmessers mit den folgenden Funktionen:
+ - Funktionsweise in der Art einer Lichtschranke
+ - Messe die Zeit zwischen zwei Lichtschranken-Unterbrechungen
+ - Anzeige der zuletzt gemessenen Zeit und der besten (kleinsten) gemessenen Zeit
+ - Zeitraum bis 99.999 Sekunden mit Millisekunden Genauigkeit
+ 
+Hiermit kann man also eine Lichtschranke aufbauen. 
+Dazu braucht ihr:
+
+ - 1x Arduino Uno (oder kompatibel)
+ - 1x Photowiderstand (z.B. https://www.amazon.com/gp/product/B01N7V536K/ref=as_li_tl)
+ - 1x 10k Ohm Widerstand
+ - 1x LCD - 2 oder 4 Zeilen Display (z.B. https://www.amazon.de/AZDelivery-HD44780-Display-Zeichen-Schnittstelle/dp/B07N8CGM9G/ref=sr_1_13)
+ - 1x Breadboard
+ - 7x Steckkabel
+ 
+ - 1 Laserquelle, z.B. ein Laserpointer oder ähnlich.
+ 
+--------------------------------------------------
+Aufbau
+--------------------------------------------------
+
+Photowiderstand
+ 1) Photowiderstand auf das Breadboard stecken
+ 2) Pin 1 des Photowiderstand mittels Steckkabel mit 5V (Power) auf dem Arduino verbinden
+ 3) Pin 2 des Photowiderstand mittels Steckkabel mit A0 (Analog In) auf dem Arduino verbinden
+ 4) Pin 2 des Photowiderstand mit 10k Ohm Widerstand (Pin 1) verbinden
+ 5) Pin 2 des 10k Ohm Widerstand mittels Steckkabel mit GND (Power) auf dem Arduino verbinden
+ 
+LCD Display 
+ 6) GND des LCD Displays mittels Steckkabel mit GND (Power) auf dem Arduino verbinden (oder auf dem Breadboard zu Pin 2 des Widerstands)
+ 7) VCC des LCD Displays mittels Steckkabel mit 5V (Power) auf dem Arduino verbinden (oder auf dem Breadboard zu Pin 1 des Photowiderstands)
+ 8) SDA des LCD Displays mittels Steckkabel mit SDA auf dem Arduino verbinden (wenn euer Board keinen SDA hat, dann A5 analog in verwenden)
+ 9) SCL des LCD Displays mittels Steckkabel mit SCL auf dem Arduino verbinden (wenn euer Board keinen SDA hat, dann A4 analog in verwenden)
+ 
+--------------------------------------------------
+Programm-Ablauf
+--------------------------------------------------
+
+Das Arduino Programm tut das folgende:
+ 1) Initialisiert das LCD Panel
+ 2) Misst die Raumhelligkeit und speichert dies als Referenzwert
+ 3) Wenn der Laser auf den Photowiderstand trifft, ist das System bereit
+ 4) Wird der Laser durchbrochen, und der Photowiderstand fällt auf "normal", triggert dies die Zeitmessung.
+ 5) Wird der Laser das nächste Mal durchbrochen, und der Photowiderstand fällt auf "normal", triggert dies die nächste Zeitmessung und die Differenzzeiten werden berechnet.
+ 6) Ausgabe der letzten Messung und des besten Wertes auf dem Display
+ 
+--------------------------------------------------
+Hinweis
+--------------------------------------------------
+
+Im Setup / beim Start nicht den Laser auf den Photowiderstand richten, sondern erst damit warten bis das Display den Normalwert angezeit hat und dann umgeschaltet hat. 
