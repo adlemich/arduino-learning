@@ -4,7 +4,7 @@ OPTISCH (LASER) BASIERTE ZEITMESSUNG MIT ARDUINO
 
 Diese Projekt dreht sich um den Aufbau eines einfachen Zeitmessers mit den folgenden Funktionen:
  - Funktionsweise in der Art einer Lichtschranke
- - Messe die Zeit zwischen zwei Lichtschranken-Unterbrechungen
+ - Misst die Zeit zwischen zwei Lichtschranken-Unterbrechungen (negative Flanke als Trigger)
  - Anzeige der zuletzt gemessenen Zeit und der besten (kleinsten) gemessenen Zeit
  - Zeitraum bis 99.999 Sekunden mit Millisekunden Genauigkeit
  
@@ -50,7 +50,8 @@ Das Arduino Programm tut das folgende:
  6) Ausgabe der letzten Messung und des besten Wertes auf dem Display
  
 --------------------------------------------------
-Hinweis
+Hinweise
 --------------------------------------------------
 
-Im Setup / beim Start nicht den Laser auf den Photowiderstand richten, sondern erst damit warten bis das Display den Normalwert angezeit hat und dann umgeschaltet hat. 
+- Im Setup / beim Start muss der Laser auf den Photowiderstand gerichtet sein, sonst klappt die Kalibrierung nicht.
+- Der Widerstand des Photowiderstands nimmt über Zeit ab, nachdem der Laser nicht mehr darauf gerichtet ist. Dass beeinflusst die notendige Auslösedauer.
